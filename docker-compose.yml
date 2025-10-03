@@ -4,25 +4,24 @@ services:
     image: docker:dind
     privileged: true
     volumes:
-      - docker-socket:/var/run/docker.sock  # Mounts Docker socket for communication
       - docker-certs-ca:/certs/ca  # Volume for CA certificates
       - docker-certs-client:/certs/client  # Volume for client certificates
     environment:
       - DOCKER_TLS_CERTDIR=/certs  # Sets directory for TLS certificates
     networks:
       - jenkins  # Uses custom network for communication
+
   jenkins:
     # Jenkins service using DinD for image building and pipeline execution
     image: jenkins/jenkins:lts-jdk11
     ports:
-      - "8080:8080"  # Maps Jenkins UI port
+      - "8080:8080"  # Maps Jenkins UI port to host
       - "50000:50000"  # Maps agent port
     volumes:
       - jenkins-home:/var/jenkins_home  # Persistent storage for Jenkins data
       - docker-certs-client:/certs/client:ro  # Read-only client certificate volume
-      - docker-socket:/var/run/docker.sock  # Links to DinD socket
     environment:
-      - DOCKER_HOST=tcp://dind:2376  # Configures Docker host for Jenkins
+      - DOCKER_HOST=tcp://dind:2376  # Configures Docker host for Jenkins (TLS port)
       - DOCKER_CERT_PATH=/certs/client  # Path to client certificates
       - DOCKER_TLS_VERIFY=1  # Enables TLS verification
     depends_on:
@@ -30,14 +29,14 @@ services:
     networks:
       - jenkins  # Uses custom network for communication
     user: root  # Runs as root for privileged operations
+    restart: unless-stopped  # Auto-restart on failure
 
 networks:
   jenkins:
     # Custom network to connect Jenkins and DinD services
-    external: true
+    driver: bridge
 
 volumes:
-  docker-socket:  # Shared socket volume for Docker communication
-  jenkins-home:  # Persistent Jenkins home volume
   docker-certs-ca:  # Volume for CA certificates
   docker-certs-client:  # Volume for client certificates
+  jenkins-home:  # Persistent Jenkins home volume
