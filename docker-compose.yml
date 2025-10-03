@@ -20,6 +20,7 @@ services:
     volumes:
       - jenkins-home:/var/jenkins_home  # Persistent storage for Jenkins data
       - docker-certs-client:/certs/client:ro  # Read-only client certificate volume
+      - /usr/bin/docker:/usr/bin/docker # <-- Mount Docker CLI binary into Jenkins
     environment:
       - DOCKER_HOST=tcp://dind:2376  # Configures Docker host for Jenkins (TLS port)
       - DOCKER_CERT_PATH=/certs/client  # Path to client certificates
