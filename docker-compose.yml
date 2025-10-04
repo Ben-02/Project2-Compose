@@ -4,33 +4,33 @@ services:
     image: docker:dind
     privileged: true
     volumes:
-      - docker-certs-ca:/certs/ca  # Volume for CA certificates
-      - docker-certs-client:/certs/client  # Volume for client certificates
+      - docker-certs-ca:/certs/ca # Volume for CA certificates
+      - docker-certs-client:/certs/client # Volume for client certificates
     environment:
-      - DOCKER_TLS_CERTDIR=/certs  # Sets directory for TLS certificates
+      - DOCKER_TLS_CERTDIR=/certs # Sets directory for TLS certificates
     networks:
-      - jenkins  # Uses custom network for communication
+      - jenkins # Uses custom network for communication
 
   jenkins:
     # Jenkins service using DinD for image building and pipeline execution
     image: jenkins/jenkins:lts-jdk11
     ports:
-      - "8080:8080"  # Maps Jenkins UI port to host
-      - "50000:50000"  # Maps agent port
+      - "8080:8080" # Maps Jenkins UI port to host
+      - "50000:50000" # Maps agent port
     volumes:
-      - jenkins-home:/var/jenkins_home  # Persistent storage for Jenkins data
-      - docker-certs-client:/certs/client:ro  # Read-only client certificate volume
-      - /usr/bin/docker:/usr/bin/docker # <-- Mount Docker CLI binary into Jenkins
+      - jenkins-home:/var/jenkins_home # Persistent storage for Jenkins data
+      - docker-certs-client:/certs/client:ro # Read-only client certificate volume
+      - /snap/bin/docker:/usr/bin/docker # Mount the correct Docker binary path
     environment:
-      - DOCKER_HOST=tcp://dind:2376  # Configures Docker host for Jenkins (TLS port)
-      - DOCKER_CERT_PATH=/certs/client  # Path to client certificates
-      - DOCKER_TLS_VERIFY=1  # Enables TLS verification
+      - DOCKER_HOST=tcp://dind:2376 # Configures Docker host for Jenkins (TLS port)
+      - DOCKER_CERT_PATH=/certs/client # Path to client certificates
+      - DOCKER_TLS_VERIFY=1 # Enables TLS verification
     depends_on:
-      - dind  # Ensures DinD starts first
+      - dind # Ensures DinD starts first
     networks:
-      - jenkins  # Uses custom network for communication
-    user: root  # Runs as root for privileged operations
-    restart: unless-stopped  # Auto-restart on failure
+      - jenkins # Uses custom network for communication
+    user: root # Runs as root for privileged operations
+    restart: unless-stopped # Auto-restart on failure
 
 networks:
   jenkins:
@@ -38,6 +38,6 @@ networks:
     driver: bridge
 
 volumes:
-  docker-certs-ca:  # Volume for CA certificates
-  docker-certs-client:  # Volume for client certificates
-  jenkins-home:  # Persistent Jenkins home volume
+  docker-certs-ca: # Volume for CA certificates
+  docker-certs-client: # Volume for client certificates
+  jenkins-home: # Persistent Jenkins home volume
