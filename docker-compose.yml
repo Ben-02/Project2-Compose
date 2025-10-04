@@ -3,6 +3,7 @@ services:
     # Docker-in-Docker service to enable Docker commands safely
     image: docker:dind
     privileged: true
+    hostname: dind
     volumes:
       - docker-certs-ca:/certs/ca # Volume for CA certificates
       - docker-certs-client:/certs/client # Volume for client certificates
@@ -13,14 +14,15 @@ services:
 
   jenkins:
     # Jenkins service using DinD for image building and pipeline execution
-    image: jenkins/jenkins:lts-jdk11
+    image: jenkins/jenkins:lts-jdk21
+    privileged: true
     ports:
       - "8080:8080" # Maps Jenkins UI port to host
       - "50000:50000" # Maps agent port
     volumes:
       - jenkins-home:/var/jenkins_home # Persistent storage for Jenkins data
       - docker-certs-client:/certs/client:ro # Read-only client certificate volume
-      - /snap/bin/docker:/usr/bin/docker # Mount the correct Docker binary path
+      - /usr/bin/docker:/usr/bin/docker # Mount the correct Docker binary path
     environment:
       - DOCKER_HOST=tcp://dind:2376 # Configures Docker host for Jenkins (TLS port)
       - DOCKER_CERT_PATH=/certs/client # Path to client certificates
